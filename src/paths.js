@@ -14,6 +14,7 @@ const buildPathsOld = async(pairInfo, pairSpec) => {
 const buildPaths = async(pairInfo, pathSpecs) => {
     // let path = buildPath({pairID: pairSpec.abID, invert: true}, {pairID: pairSpec.bcID, invert: false}, {pairID: pairSpec.caID, invert: true})
     let paths = []
+    // console.log(pathSpecs)
 
     pathSpecs.forEach((pathSpec)=>{
     
