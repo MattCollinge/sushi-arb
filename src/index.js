@@ -403,7 +403,7 @@ const specPathsSpookyFTM = async()=> {
     bcID: '0x484237bc35ca671302d19694c66d617142fbc235',
     bcInvert: false,
     caID: '0xe120ffbda0d14f3bb6d6053e90e63c572a66a428',
-    caInvert: false})
+    caInvert: true})
 
     // path1 =  0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c	USDC-WFTM	token1	token0
     //          0xfdef392adc84607135c24ca45de5452d77aa10de	USDC-fUSDT	token0 	token1
@@ -611,7 +611,7 @@ const specPathsSpookyFTM = async()=> {
     abInvert: false,
     bcID: '0x1b07d5524cec48a607371b4ba238859dc724e4da',
     bcInvert: false,
-    caID: '0x1c94665fd3ecfa969feda7ed01e35522e6982022',
+    caID: '0x623ee4a7f290d11c11315994db70fb148b13021d',
     caInvert: true})
 
     //path20 =  0x1c94665fd3ecfa969feda7ed01e35522e6982022	WFTM-BADGER	token0	token1

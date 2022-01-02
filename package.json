@@ -5,9 +5,11 @@
   "author": "mcollinge",
   "license": "MIT",
   "dependencies": {
-    "@sushiswap/sushi-data": "file:/Users/mcollinge/dev/sushi-data",
+    "@sushiswap/sushi-data": "file:../sushi-data",
     "colors": "^1.4.0",
+    "concurrently": "^6.5.1",
     "esm": "^3.2.25",
+    "global": "^4.4.0",
     "objects-to-csv": "^1.3.6",
     "yargs": "^17.3.1"
   },
