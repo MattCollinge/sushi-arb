@@ -22,6 +22,10 @@ const buildPaths = async(pairInfo, pathSpecs) => {
     let secondPair = pairInfo.find(e => e.pair_id.toString() === pathSpec.bcID)
     let lastPair = pairInfo.find(e => e.pair_id.toString() === pathSpec.caID)
    
+    if(!firstPair){ console.log(`Could not locate Pair: ${pathSpec.abID}`)}
+    if(!secondPair){ console.log(`Could not locate Pair: ${pathSpec.bcID}`)}
+    if(!lastPair){ console.log(`Could not locate Pair: ${pathSpec.caID}`)}
+
     let path = {
         pathname: pathSpec.name,
         a1: pathSpec.abInvert ? firstPair.reserve1 : firstPair.reserve0, 

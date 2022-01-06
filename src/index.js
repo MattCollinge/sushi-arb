@@ -1,14 +1,16 @@
 const { parseSync } = require('@babel/core');
 const sushiData = require('@sushiswap/sushi-data');
 const colors = require('colors');
-const objectsToCsv = require('objects-to-csv')
+const objectsToCsv = require('objects-to-csv');
 const yargs = require('yargs');
+
 
 const arb = require('./arbCalculation.js');
 const paths = require('./paths.js');
+const neo4j = require('./neo4j.js');
+const tokens = require('./tokenExtract.js');
 var chain // = 'FTM' //Options are 'ETH' or 'FTM', 'Spooky_FTM', or 'AVAX'
 
-//TODO: Test this file !!!
 
 const argv = yargs
     // .option('chain', {
@@ -35,6 +37,8 @@ const argv = yargs
   }
   console.log(argv);
 
+  var runOnce = false;
+
 sushiData.exchange
   .observePairs({exchangeChain:chain})
   .subscribe({next: (pairs) => savePair(pairs), error: (err) => console.log(err)})
@@ -56,8 +60,8 @@ const savePair = async(pairs) => {
             token1Price: element.token1Price,
             token0_id: element.token0.id,
             token1_id: element.token1.id,
-            token0_name: element.token0.name,
-            token1_name: element.token1.name,
+            token0_name: element.token0.name.replaceAll(/\"/g,''),
+            token1_name: element.token1.name.replaceAll(/\"/g,''),
             volumeUSD: element.volumeUSD,
             txCount: element.txCount,
             reserveETH: element.reserveETH,
@@ -68,35 +72,53 @@ const savePair = async(pairs) => {
         pairInfo.push(newEle)
       });
     
-    //   const csv = new objectsToCsv(pairInfo)
-    //   await csv.toDisk(`./data/arb-${chain}.csv`)//, { append: true })
-        // console.log(pairInfo)
+      //   const csv = new objectsToCsv(pairInfo)
+      //   await csv.toDisk(`./data/arb-${chain}.csv`)//, { append: true })
+      //   console.log(pairInfo)
+      var exchange = 'Sushiswap'
+      if(chain == 'Spooky_FTM'){chain='FTM'; exchange='Spookyswap';}
 
-      var pathSpecs
-      switch(chain){
-        case "ETH": {
-                pathSpecs = await specPathsETH();
-            }break;
-        case "FTM": {
-                pathSpecs = await specPathsFTM();
-            }break;
-        case "AVAX": {
-                pathSpecs = await specPathsAVAX();
-            }break;
-        case "Spooky_FTM": {
-                pathSpecs = await specPathsSpookyFTM();
-            }break;
-        default:{
-                pathSpecs = await specPathsETH();
-            }break;
+    //   if(!runOnce){
+    //     runOnce = true
+    //     await neo4j.connect()
+    //     await neo4j.writeTokenNodes(await tokens.extractTokenInfo(pairInfo, chain))
+    //   }
+
+      if(!runOnce){
+        runOnce = true
+        await neo4j.connect()
+        await neo4j.writePairEdges(await tokens.extractPairInfo(pairInfo, chain, exchange))
       }
-    
-      let arbPaths = await paths.buildPaths(pairInfo,pathSpecs)
-
-      await arbPaths.forEach((path) => {
-        arbCheck(path);
-      })
+      // Old Version - no Graph DB  
+      //  await oldArbCheck(pairInfo)
     }
+
+const oldArbCheck = async(pairInfo)=>{
+  var pathSpecs
+  switch(chain){
+    case "ETH": {
+            pathSpecs = await specPathsETH();
+        }break;
+    case "FTM": {
+            pathSpecs = await specPathsFTM();
+        }break;
+    case "AVAX": {
+            pathSpecs = await specPathsAVAX();
+        }break;
+    case "Spooky_FTM": {
+            pathSpecs = await specPathsSpookyFTM();
+        }break;
+    default:{
+            pathSpecs = await specPathsETH();
+        }break;
+  }
+
+  let arbPaths = await paths.buildPaths(pairInfo,pathSpecs)
+
+ await arbPaths.forEach((path) => {
+    arbCheck(path);
+ })
+}
 
 const specPathsETH = async()=> {
     pathSpecs = [];
@@ -460,16 +482,16 @@ const specPathsSpookyFTM = async()=> {
     caID: '0x78f82c16992932efdd18d93f889141ccf326dbc2',
     caInvert: true})
 
-    // path6 =  0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c	USDC-WFTM	token1	token0
-    //          0x72c0fb8c84d1050a8385e65212777eeb2fed3297	USDC-wsHEC	token0 	token1
-    //          0x0bfe6f893a6bc443b575ddf361a30f39aa03e59c	WFTM-wsHEC	token1	token0
-    pathSpecs.push({name: 'WFTM->USDC->wsHEC->WFTM',
-    abID: '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c',
-    abInvert: true,
-    bcID: '0x72c0fb8c84d1050a8385e65212777eeb2fed3297',
-    bcInvert: false,
-    caID: '0x0bfe6f893a6bc443b575ddf361a30f39aa03e59c',
-    caInvert: true})
+    // // path6 =  0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c	USDC-WFTM	token1	token0
+    // //          0x72c0fb8c84d1050a8385e65212777eeb2fed3297	USDC-wsHEC	token0 	token1
+    // //          0x0bfe6f893a6bc443b575ddf361a30f39aa03e59c	WFTM-wsHEC	token1	token0
+    // pathSpecs.push({name: 'WFTM->USDC->wsHEC->WFTM',
+    // abID: '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c',
+    // abInvert: true,
+    // bcID: '0x72c0fb8c84d1050a8385e65212777eeb2fed3297',
+    // bcInvert: false,
+    // caID: '0x0bfe6f893a6bc443b575ddf361a30f39aa03e59c',
+    // caInvert: true})
 
     // path7 =  0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c	USDC-WFTM	token1	token0
     //          0xf62475cbd5121e56fb09eb9727dd95e0755414ae	USDC-DMD	token0 	token1
