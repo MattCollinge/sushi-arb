@@ -41,8 +41,8 @@ const extractPairInfo = async(pairInfo, chain, exchange) => {
             rate1_0: getRate(element.reserve1, element.reserve0),
             maker_fee: 0,
             taker_fee: 0.997,
-            exchange: 'Spookyswap',
-            chain: 'FTM'
+            exchange: exchange,
+            chain: chain
         }))
     });
    
@@ -55,10 +55,10 @@ const extractPairInfo = async(pairInfo, chain, exchange) => {
 const getRate = (reserve0, reserve1) => {
     var result;
     
-    if (reserve1 == 0){
-        result = 1
+    if (reserve0 == 0){
+        result = 0
     }else{
-        result = reserve0/reserve1
+        result = reserve1/reserve0
     }
 
  return result;

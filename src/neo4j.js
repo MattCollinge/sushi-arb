@@ -36,9 +36,21 @@ function template(strings, ...keys) {
 // MERGE (t0)-[rel:PAIR {pairId: pairId, pair: token0+’-'+token1, token0_depth: token0_depth, token1_depth: token1_depth, rate: rate0_1, maker_fee: maker_fee, taker_fee: taker_fee, exchange: exchange, chain: chain}]->(t1)
 // MERGE (t1)-[rel:PAIR {pairId: pairId, pair: token1+’-'+token0, token0_depth: token1_depth, token1_depth: token0_depth, rate: rate1_0, maker_fee: maker_fee, taker_fee: taker_fee, exchange: exchange, chain: chain}]->(t0)
 
+// CREATE CONSTRAINT [uniqueTokenTickerETH] [IF NOT EXISTS]
+// FOR (n:Token:ETH)
+// REQUIRE n.id IS UNIQUE
+
+// CREATE CONSTRAINT [uniqueTokenTickerFTM] [IF NOT EXISTS]
+// FOR (n:Token:FTM)
+// REQUIRE n.id IS UNIQUE
+
+// CREATE CONSTRAINT [uniqueTokenTickerAVAX] [IF NOT EXISTS]
+// FOR (n:Token:AVAX)
+// REQUIRE n.id IS UNIQUE
+
 const generatePairUpsert = (pair)=>{
     let pairClosure = template`MATCH (t0:Token:${'chain'} {id: '${'token0_id'}'})
-    MATCH (t1:Token {id: '${'token1_id'}'})
+    MATCH (t1:Token:${'chain'} {id: '${'token1_id'}'})
     MERGE (t0)-[rel:PAIR {pairId: '${'id'}', pair: '${'token0'}-${'token1'}', token0_depth: ${'token0_depth'}, token1_depth: ${'token1_depth'}, rate: ${'rate0_1'}, maker_fee: ${'maker_fee'}, taker_fee: ${'taker_fee'}, exchange: '${'exchange'}', chain: '${'chain'}'}]->(t1)
     MERGE (t1)-[relrev:PAIR {pairId: '${'id'}', pair: '${'token1'}-${'token0'}', token0_depth: ${'token1_depth'}, token1_depth: ${'token0_depth'}, rate: ${'rate1_0'}, maker_fee: ${'maker_fee'}, taker_fee: ${'taker_fee'}, exchange: '${'exchange'}', chain: '${'chain'}'}]->(t0)`
     // pair.rate1_0 = neo4j.int(pair.rate1_0)
@@ -49,7 +61,8 @@ const generatePairUpsert = (pair)=>{
 
 const writePairEdges = async (pairs)=> {
     for (const element of pairs){
-     await writeToNeo4j(generatePairUpsert(element))   
+     await writeToNeo4j(generatePairUpsert(element)) 
+     console.log(`Written Pair:${element.token0}-${element.token1}`)  
     }
     return pairs.length;
 }
@@ -63,7 +76,8 @@ const generateTokenInsert = (token)=>{
 
 const writeTokenNodes = async (tokens)=> {
     for (const element of tokens){
-     await writeToNeo4j(generateTokenInsert(element))   
+     await writeToNeo4j(generateTokenInsert(element))
+     console.log(`Written Token:${element.ticker}`)     
     }
     return tokens.length;
 }
@@ -86,7 +100,7 @@ const writeToNeo4j= async (payload)=> {
     return result.records.map(record => record.get(0))//result.records.map(record => record.get('USDC'))
   })
 
-  console.log(result);
+  // console.log(result);
   return result
 }
 

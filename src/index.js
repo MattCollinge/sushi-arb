@@ -37,7 +37,7 @@ const argv = yargs
   }
   console.log(argv);
 
-  var runOnce = false;
+  var runOnce, runOncePairs = false;
 
 sushiData.exchange
   .observePairs({exchangeChain:chain})
@@ -84,11 +84,12 @@ const savePair = async(pairs) => {
     //     await neo4j.writeTokenNodes(await tokens.extractTokenInfo(pairInfo, chain))
     //   }
 
-      if(!runOnce){
-        runOnce = true
+      if(!runOncePairs){
+        runOncePairs = true
         await neo4j.connect()
         await neo4j.writePairEdges(await tokens.extractPairInfo(pairInfo, chain, exchange))
       }
+
       // Old Version - no Graph DB  
       //  await oldArbCheck(pairInfo)
     }
